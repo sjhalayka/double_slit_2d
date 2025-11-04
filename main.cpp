@@ -354,7 +354,6 @@ vector_3 randomPointOnCircle_xz(double radius)
 {
 	real_type angle = static_cast<real_type>(rand()) / RAND_MAX * 2.0f * pi;
 
-	// Convert polar coordinates to Cartesian
 	vector_3 v;
 	v.x = radius * cos(angle);
 	v.y = 0;
@@ -371,39 +370,38 @@ void keyboard_func(unsigned char key, int x, int y)
 	{
 	case 'z':
 	{
-		photon p;
-		p.position = vector_3(0, 0.0, -0.9);
-		p.velocity = randomPointOnCircle_xz(0.001);
-
-		//hit_receiver.push_back(p);
-		while (1)
+		for (size_t i = 0; i < 1000; i++)
 		{
-			p.position += p.velocity * dt;
+			photon p;
+			p.position = vector_3(0, 0.0, -0.9);
+			p.velocity = randomPointOnCircle_xz(0.001);
 
-			if (true == intersect_AABB_2D_xz(double_slit_boundaries[0], p.position) ||
-				true == intersect_AABB_2D_xz(double_slit_boundaries[1], p.position) ||
-				true == intersect_AABB_2D_xz(double_slit_boundaries[2], p.position))
+			while (1)
 			{
-				hit_boundaries.push_back(p);
-				break;
-			}
-			else if (true == intersect_AABB_2D_xz(receiver, p.position))
-			{
-				hit_receiver.push_back(p);
-				break;
-			}
-			else if (false == intersect_AABB_2D_xz(apparatus_bounds, p.position))
-			{
-				hit_apparatus_bounds.push_back(p);
-				break;
-			}
+				p.position += p.velocity * dt;
 
+				if (true == intersect_AABB_2D_xz(double_slit_boundaries[0], p.position) ||
+					true == intersect_AABB_2D_xz(double_slit_boundaries[1], p.position) ||
+					true == intersect_AABB_2D_xz(double_slit_boundaries[2], p.position))
+				{
+					hit_boundaries.push_back(p);
+					break;
+				}
+				else if (true == intersect_AABB_2D_xz(receiver, p.position))
+				{
+					hit_receiver.push_back(p);
+					break;
+				}
+				else if (false == intersect_AABB_2D_xz(apparatus_bounds, p.position))
+				{
+					hit_apparatus_bounds.push_back(p);
+					break;
+				}
+			}
 		}
 
 		break;
 	}
-
-
 	case 'w':
 	{
 		draw_axis = !draw_axis;
