@@ -25,6 +25,20 @@ bool intersect_AABB_2D_xz(const AABB &aabb, const vector_3& point)
 int main(int argc, char** argv)
 {
 
+	apparatus_bounds.min_location = vector_3(-1.0, 0, -1.0);
+	apparatus_bounds.max_location = vector_3(1.0, 0, 1.0);
+	receiver.min_location = vector_3(-1.0, 0, 1.0);
+	receiver.max_location = vector_3(1.0, 0, 1.2);
+	double_slit_boundaries[0].min_location = vector_3(0.2, 0.01, -0.1);
+	double_slit_boundaries[0].max_location = vector_3(1.0, 0.01, 0.1);
+	double_slit_boundaries[1].min_location = vector_3(-0.1, 0.01, -0.1);
+	double_slit_boundaries[1].max_location = vector_3(0.1, 0.01, 0.1);
+	double_slit_boundaries[2].min_location = vector_3(-0.2, 0.01, -0.1);
+	double_slit_boundaries[2].max_location = vector_3(-1.0, 0.01, 0.1);
+
+
+
+
 
 	cout << setprecision(20) << endl;
 
@@ -212,16 +226,7 @@ void draw_objects(void)
 
 	//glEnd();
 
-	apparatus_bounds.min_location = vector_3(-1.0, 0, -1.0);
-	apparatus_bounds.max_location = vector_3( 1.0, 0,  1.0);
-	receiver.min_location = vector_3(-1.0, 0, 1.0);
-	receiver.max_location = vector_3(1.0, 0, 2.0);
-	double_slit_boundaries[0].min_location = vector_3(0.2, 0.01, -0.1);
-	double_slit_boundaries[0].max_location = vector_3(1.0, 0.01, 0.1);
-	double_slit_boundaries[1].min_location = vector_3(-0.1, 0.01, -0.1);
-	double_slit_boundaries[1].max_location = vector_3(0.1, 0.01, 0.1);
-	double_slit_boundaries[2].min_location = vector_3(-0.2, 0.01, -0.1);
-	double_slit_boundaries[2].max_location = vector_3(-1.0, 0.01, 0.1);
+
 
 	draw_AABB(apparatus_bounds, 1.0, 0.5, 0.0, 1.0f);
 	draw_AABB(receiver, 1.0, 0.5, 1.0, 1.0f);
