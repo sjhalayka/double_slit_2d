@@ -103,8 +103,8 @@ real_type camera_y_transform = 0;
 real_type u_spacer = 0.01f;
 real_type v_spacer = 0.5f * u_spacer;
 real_type w_spacer = 0.1f;
-real_type camera_near = 0.000001f;
-real_type camera_far = 1000000.0f;
+real_type camera_near = 0.01f;
+real_type camera_far = 100.0f;
 
 bool lmb_down = false;
 bool mmb_down = false;

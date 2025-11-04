@@ -1,11 +1,20 @@
 ﻿#include "main.h"
 
-
-
-bool intersect_AABB_2d(const vector_3 min_location, const vector_3 max_location, const vector_3& point)
+class AABB
 {
-	if (min_location.x <= point.x && max_location.x >= point.x &&
-		min_location.y <= point.y && max_location.y >= point.y)
+public:
+	vector_3 min_location;
+	vector_3 max_location;
+};
+
+AABB apparatus_bounds;
+AABB double_slit_boundaries[3];
+AABB receiver;
+
+bool intersect_AABB_2D_xz(const AABB &aabb, const vector_3& point)
+{
+	if (aabb.min_location.x <= point.x && aabb.max_location.x >= point.x &&
+		aabb.min_location.z <= point.z && aabb.max_location.z >= point.z)
 	{
 		return true;
 	}
@@ -37,7 +46,84 @@ int main(int argc, char** argv)
 }
 
 
+// Add this function to draw an AABB using triangles
+void draw_AABB(const AABB& aabb, float r, float g, float b, float alpha = 1.0f)
+{
+	vector_3 min = aabb.min_location;
+	vector_3 max = aabb.max_location;
 
+	glColor4f(r, g, b, alpha);
+
+	// Enable blending if using transparency
+	if (alpha < 1.0f)
+	{
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	}
+
+	glBegin(GL_TRIANGLES);
+
+	// Front face (z = max.z)
+	glVertex3d(min.x, min.y, max.z);
+	glVertex3d(max.x, min.y, max.z);
+	glVertex3d(max.x, max.y, max.z);
+
+	glVertex3d(min.x, min.y, max.z);
+	glVertex3d(max.x, max.y, max.z);
+	glVertex3d(min.x, max.y, max.z);
+
+	// Back face (z = min.z)
+	glVertex3d(min.x, min.y, min.z);
+	glVertex3d(min.x, max.y, min.z);
+	glVertex3d(max.x, max.y, min.z);
+
+	glVertex3d(min.x, min.y, min.z);
+	glVertex3d(max.x, max.y, min.z);
+	glVertex3d(max.x, min.y, min.z);
+
+	// Left face (x = min.x)
+	glVertex3d(min.x, min.y, min.z);
+	glVertex3d(min.x, min.y, max.z);
+	glVertex3d(min.x, max.y, max.z);
+
+	glVertex3d(min.x, min.y, min.z);
+	glVertex3d(min.x, max.y, max.z);
+	glVertex3d(min.x, max.y, min.z);
+
+	// Right face (x = max.x)
+	glVertex3d(max.x, min.y, min.z);
+	glVertex3d(max.x, max.y, max.z);
+	glVertex3d(max.x, min.y, max.z);
+
+	glVertex3d(max.x, min.y, min.z);
+	glVertex3d(max.x, max.y, min.z);
+	glVertex3d(max.x, max.y, max.z);
+
+	// Top face (y = max.y)
+	glVertex3d(min.x, max.y, min.z);
+	glVertex3d(min.x, max.y, max.z);
+	glVertex3d(max.x, max.y, max.z);
+
+	glVertex3d(min.x, max.y, min.z);
+	glVertex3d(max.x, max.y, max.z);
+	glVertex3d(max.x, max.y, min.z);
+
+	// Bottom face (y = min.y)
+	glVertex3d(min.x, min.y, min.z);
+	glVertex3d(max.x, min.y, max.z);
+	glVertex3d(min.x, min.y, max.z);
+
+	glVertex3d(min.x, min.y, min.z);
+	glVertex3d(max.x, min.y, min.z);
+	glVertex3d(max.x, min.y, max.z);
+
+	glEnd();
+
+	if (alpha < 1.0f)
+	{
+		glDisable(GL_BLEND);
+	}
+}
 
 
 void idle_func(void)
@@ -126,35 +212,47 @@ void draw_objects(void)
 
 	//glEnd();
 
+	apparatus_bounds.min_location = vector_3(-1.0, 0, -1.0);
+	apparatus_bounds.max_location = vector_3( 1.0, 0,  1.0);
+	receiver.min_location = vector_3(-1.0, 0, 1.0);
+	receiver.max_location = vector_3(1.0, 0, 2.0);
+	double_slit_boundaries[0].min_location = vector_3(0.2, 0.01, -0.1);
+	double_slit_boundaries[0].max_location = vector_3(1.0, 0.01, 0.1);
+	double_slit_boundaries[1].min_location = vector_3(-0.1, 0.01, -0.1);
+	double_slit_boundaries[1].max_location = vector_3(0.1, 0.01, 0.1);
+	double_slit_boundaries[2].min_location = vector_3(-0.2, 0.01, -0.1);
+	double_slit_boundaries[2].max_location = vector_3(-1.0, 0.01, 0.1);
+
+	draw_AABB(apparatus_bounds, 1.0, 0.5, 0.0, 1.0f);
+	draw_AABB(receiver, 1.0, 0.5, 1.0, 1.0f);
+	draw_AABB(double_slit_boundaries[0], 1.0, 0.0, 0.0, 1.0f);
+	draw_AABB(double_slit_boundaries[1], 0.0, 1.0, 0.0, 1.0f);
+	draw_AABB(double_slit_boundaries[2], 0.0, 0.0, 1.0, 1.0f);
 
 
-
-
-	glLineWidth(1.0f);
-
-
-	// If we do draw the axis at all, make sure not to draw its outline.
 	if (true == draw_axis)
 	{
+		glLineWidth(1.0f);
+
 		glBegin(GL_LINES);
 
 		glColor3f(1, 0, 0);
-		glVertex3f(0, 0, 0);
-		glVertex3f(1, 0, 0);
+		glVertex3d(0, 0, 0);
+		glVertex3d(1, 0, 0);
 		glColor3f(0, 1, 0);
-		glVertex3f(0, 0, 0);
-		glVertex3f(0, 1, 0);
+		glVertex3d(0, 0, 0);
+		glVertex3d(0, 1, 0);
 		glColor3f(0, 0, 1);
-		glVertex3f(0, 0, 0);
-		glVertex3f(0, 0, 1);
+		glVertex3d(0, 0, 0);
+		glVertex3d(0, 0, 1);
 
 		glColor3f(0.5, 0.5, 0.5);
-		glVertex3f(0, 0, 0);
-		glVertex3f(-1, 0, 0);
-		glVertex3f(0, 0, 0);
-		glVertex3f(0, -1, 0);
-		glVertex3f(0, 0, 0);
-		glVertex3f(0, 0, -1);
+		glVertex3d(0, 0, 0);
+		glVertex3d(-1, 0, 0);
+		glVertex3d(0, 0, 0);
+		glVertex3d(0, -1, 0);
+		glVertex3d(0, 0, 0);
+		glVertex3d(0, 0, -1);
 
 		glEnd();
 	}
