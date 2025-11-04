@@ -251,7 +251,7 @@ void draw_objects(void)
 	glEnd();
 
 
-	if (true == draw_axis)
+	if (0)//true == draw_axis)
 	{
 		glLineWidth(1.0f);
 
