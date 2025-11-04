@@ -71,6 +71,7 @@ const real_type k = 1.380649e-23;
 
 const real_type planck_length = sqrt(hbar * G / c3);
 
+const double dt = 0.01; // 10000 seconds == 2.77777 hours
 
 void idle_func(void);
 void init_opengl(const int& width, const int& height);

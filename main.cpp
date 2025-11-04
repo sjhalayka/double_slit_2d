@@ -11,6 +11,21 @@ AABB apparatus_bounds;
 AABB double_slit_boundaries[3];
 AABB receiver;
 
+
+class photon
+{
+public:
+	vector_3 velocity;
+	vector_3 position;
+};
+
+vector<photon> hit_receiver;
+vector<photon> hit_boundaries;
+vector<photon> hit_apparatus_bounds;
+
+
+
+
 bool intersect_AABB_2D_xz(const AABB &aabb, const vector_3& point)
 {
 	if (aabb.min_location.x <= point.x && aabb.max_location.x >= point.x &&
@@ -24,7 +39,6 @@ bool intersect_AABB_2D_xz(const AABB &aabb, const vector_3& point)
 
 int main(int argc, char** argv)
 {
-
 	apparatus_bounds.min_location = vector_3(-1.0, 0, -1.0);
 	apparatus_bounds.max_location = vector_3(1.0, 0, 1.0);
 	receiver.min_location = vector_3(-1.0, 0, 1.0);
@@ -33,12 +47,8 @@ int main(int argc, char** argv)
 	double_slit_boundaries[0].max_location = vector_3(1.0, 0.01, 0.1);
 	double_slit_boundaries[1].min_location = vector_3(-0.1, 0.01, -0.1);
 	double_slit_boundaries[1].max_location = vector_3(0.1, 0.01, 0.1);
-	double_slit_boundaries[2].min_location = vector_3(-0.2, 0.01, -0.1);
-	double_slit_boundaries[2].max_location = vector_3(-1.0, 0.01, 0.1);
-
-
-
-
+	double_slit_boundaries[2].min_location = vector_3(-1.0, 0.01, -0.1);
+	double_slit_boundaries[2].max_location = vector_3(-0.2, 0.01, 0.1);
 
 	cout << setprecision(20) << endl;
 
@@ -142,7 +152,7 @@ void draw_AABB(const AABB& aabb, float r, float g, float b, float alpha = 1.0f)
 
 void idle_func(void)
 {
-	const double dt = 10000; // 10000 seconds == 2.77777 hours
+
 
 	glutPostRedisplay();
 }
@@ -213,18 +223,8 @@ void draw_objects(void)
 	glPushMatrix();
 
 
-	glPointSize(2.0);
+	glPointSize(5.0f);
 	glLineWidth(1.0f);
-
-
-	//glBegin(GL_POINTS);
-
-	//glColor3f(1.0, 1.0, 1.0);
-
-	//for (size_t i = 0; i < bh.vertices.size(); i++)
-	//	glVertex3d(bh.vertices[i].x, bh.vertices[i].y, bh.vertices[i].z);
-
-	//glEnd();
 
 
 
@@ -232,7 +232,23 @@ void draw_objects(void)
 	draw_AABB(receiver, 1.0, 0.5, 1.0, 1.0f);
 	draw_AABB(double_slit_boundaries[0], 1.0, 0.0, 0.0, 1.0f);
 	draw_AABB(double_slit_boundaries[1], 0.0, 1.0, 0.0, 1.0f);
-	draw_AABB(double_slit_boundaries[2], 0.0, 0.0, 1.0, 1.0f);
+	draw_AABB(double_slit_boundaries[2], 1.0, 0.0, 0.0, 1.0f);
+
+
+	glBegin(GL_POINTS);
+
+	glColor3f(0, 0, 1);
+
+	for (size_t i = 0; i < hit_receiver.size(); i++)
+		glVertex3d(hit_receiver[i].position.x, hit_receiver[i].position.y, hit_receiver[i].position.z);
+
+	for (size_t i = 0; i < hit_boundaries.size(); i++)
+		glVertex3d(hit_boundaries[i].position.x, hit_boundaries[i].position.y, hit_boundaries[i].position.z);
+
+	for (size_t i = 0; i < hit_apparatus_bounds.size(); i++)
+		glVertex3d(hit_apparatus_bounds[i].position.x, hit_apparatus_bounds[i].position.y, hit_apparatus_bounds[i].position.z);
+
+	glEnd();
 
 
 	if (true == draw_axis)
@@ -333,10 +349,61 @@ void display_func(void)
 	glutSwapBuffers();
 }
 
+
+vector_3 randomPointOnCircle_xz(double radius) 
+{
+	real_type angle = static_cast<real_type>(rand()) / RAND_MAX * 2.0f * pi;
+
+	// Convert polar coordinates to Cartesian
+	vector_3 v;
+	v.x = radius * cos(angle);
+	v.y = 0;
+	v.z = radius * sin(angle);
+
+	return v;
+}
+
+
+
 void keyboard_func(unsigned char key, int x, int y)
 {
 	switch (tolower(key))
 	{
+	case 'z':
+	{
+		photon p;
+		p.position = vector_3(0, 0.0, -0.9);
+		p.velocity = randomPointOnCircle_xz(0.001);
+
+		//hit_receiver.push_back(p);
+		while (1)
+		{
+			p.position += p.velocity * dt;
+
+			if (true == intersect_AABB_2D_xz(double_slit_boundaries[0], p.position) ||
+				true == intersect_AABB_2D_xz(double_slit_boundaries[1], p.position) ||
+				true == intersect_AABB_2D_xz(double_slit_boundaries[2], p.position))
+			{
+				hit_boundaries.push_back(p);
+				break;
+			}
+			else if (true == intersect_AABB_2D_xz(receiver, p.position))
+			{
+				hit_receiver.push_back(p);
+				break;
+			}
+			else if (false == intersect_AABB_2D_xz(apparatus_bounds, p.position))
+			{
+				hit_apparatus_bounds.push_back(p);
+				break;
+			}
+
+		}
+
+		break;
+	}
+
+
 	case 'w':
 	{
 		draw_axis = !draw_axis;
