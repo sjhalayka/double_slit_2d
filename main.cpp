@@ -235,9 +235,13 @@ void draw_objects(void)
 	draw_AABB(double_slit_boundaries[2], 1.0, 0.0, 0.0, 1.0f);
 
 
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	glBegin(GL_POINTS);
 
-	glColor3f(0, 0, 1);
+	glColor4f(0, 0, 1, 1);
 
 	for (size_t i = 0; i < hit_receiver.size(); i++)
 		glVertex3d(hit_receiver[i].position.x, hit_receiver[i].position.y, hit_receiver[i].position.z);
@@ -249,6 +253,10 @@ void draw_objects(void)
 		glVertex3d(hit_apparatus_bounds[i].position.x, hit_apparatus_bounds[i].position.y, hit_apparatus_bounds[i].position.z);
 
 	glEnd();
+
+	glDisable(GL_BLEND);
+
+
 
 
 	if (0)//true == draw_axis)
