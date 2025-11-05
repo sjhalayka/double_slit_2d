@@ -66,14 +66,15 @@ const real_type c4 = c * c * c * c;
 
 const real_type h = 6.62607015e-34;
 const real_type hbar = h / (2.0 * pi);
-
 const real_type k = 1.380649e-23;
-
 const real_type planck_length = sqrt(hbar * G / c3);
 
-const double dt = 0.01; // 10000 seconds == 2.77777 hours
-
+const double dt = 0.001; // 10000 seconds == 2.77777 hours
 vector_3 light_position;
+const size_t x_res = 8;
+const size_t z_res = 8;
+const size_t num_direction_vectors_per_aabb = 100;
+
 
 
 void idle_func(void);

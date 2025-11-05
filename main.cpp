@@ -7,9 +7,17 @@ public:
 	vector_3 max_location;
 };
 
+class AABB_spacetime : public AABB
+{
+public:
+	vector<vector_3> directions;
+};
+
 AABB apparatus_bounds;
 AABB double_slit_boundaries[3];
 AABB receiver;
+
+vector<AABB_spacetime> apparatus_sub_sections;
 
 
 class photon
@@ -51,6 +59,50 @@ int main(int argc, char** argv)
 	double_slit_boundaries[2].max_location = vector_3(-0.2, 0.01, 0.1);
 	light_position = vector_3(0, 0.0, -0.9);
 
+	apparatus_sub_sections.resize(x_res * z_res);
+
+	for (size_t i = 0; i < x_res; i++)
+	{
+		for (size_t j = 0; j < z_res; j++)
+		{
+			const size_t index = j * x_res + i;
+			apparatus_sub_sections[index].directions.resize(num_direction_vectors_per_aabb);
+		}
+	}
+
+	const real_type x_step_size = (apparatus_bounds.max_location.x - apparatus_bounds.min_location.x) / (x_res - 1);
+	const real_type z_step_size = (apparatus_bounds.max_location.z - apparatus_bounds.min_location.z) / (z_res - 1);
+
+	AABB_spacetime curr_aabb;
+
+	curr_aabb.min_location = apparatus_bounds.min_location;
+	curr_aabb.max_location = curr_aabb.min_location;
+	curr_aabb.max_location.x += x_step_size;
+	curr_aabb.max_location.z += z_step_size;
+
+	for (size_t i = 0; i < x_res - 1; i++)
+	{
+		curr_aabb.min_location.z += z_step_size;
+		curr_aabb.max_location.z += z_step_size;
+
+		curr_aabb.min_location.z = apparatus_bounds.min_location.z;
+		curr_aabb.max_location.z = curr_aabb.min_location.z + z_step_size;
+
+		for (size_t j = 0; j < z_res - 1; j++)
+		{ 
+			const size_t index = j * x_res + i;
+			apparatus_sub_sections[index] = curr_aabb;
+
+			curr_aabb.min_location.z += z_step_size;
+			curr_aabb.max_location.z += z_step_size;
+		}
+
+		curr_aabb.min_location.x += x_step_size;
+		curr_aabb.max_location.x += x_step_size;
+
+	}
+
+
 
 	cout << setprecision(20) << endl;
 
@@ -74,6 +126,84 @@ int main(int argc, char** argv)
 
 // Add this function to draw an AABB using triangles
 void draw_AABB(const AABB& aabb, float r, float g, float b, float alpha = 1.0f)
+{
+	vector_3 min = aabb.min_location;
+	vector_3 max = aabb.max_location;
+
+	glColor4f(r, g, b, alpha);
+
+	// Enable blending if using transparency
+	if (alpha < 1.0f)
+	{
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	}
+
+	glBegin(GL_TRIANGLES);
+
+	// Front face (z = max.z)
+	glVertex3d(min.x, min.y, max.z);
+	glVertex3d(max.x, min.y, max.z);
+	glVertex3d(max.x, max.y, max.z);
+
+	glVertex3d(min.x, min.y, max.z);
+	glVertex3d(max.x, max.y, max.z);
+	glVertex3d(min.x, max.y, max.z);
+
+	// Back face (z = min.z)
+	glVertex3d(min.x, min.y, min.z);
+	glVertex3d(min.x, max.y, min.z);
+	glVertex3d(max.x, max.y, min.z);
+
+	glVertex3d(min.x, min.y, min.z);
+	glVertex3d(max.x, max.y, min.z);
+	glVertex3d(max.x, min.y, min.z);
+
+	// Left face (x = min.x)
+	glVertex3d(min.x, min.y, min.z);
+	glVertex3d(min.x, min.y, max.z);
+	glVertex3d(min.x, max.y, max.z);
+
+	glVertex3d(min.x, min.y, min.z);
+	glVertex3d(min.x, max.y, max.z);
+	glVertex3d(min.x, max.y, min.z);
+
+	// Right face (x = max.x)
+	glVertex3d(max.x, min.y, min.z);
+	glVertex3d(max.x, max.y, max.z);
+	glVertex3d(max.x, min.y, max.z);
+
+	glVertex3d(max.x, min.y, min.z);
+	glVertex3d(max.x, max.y, min.z);
+	glVertex3d(max.x, max.y, max.z);
+
+	// Top face (y = max.y)
+	glVertex3d(min.x, max.y, min.z);
+	glVertex3d(min.x, max.y, max.z);
+	glVertex3d(max.x, max.y, max.z);
+
+	glVertex3d(min.x, max.y, min.z);
+	glVertex3d(max.x, max.y, max.z);
+	glVertex3d(max.x, max.y, min.z);
+
+	// Bottom face (y = min.y)
+	glVertex3d(min.x, min.y, min.z);
+	glVertex3d(max.x, min.y, max.z);
+	glVertex3d(min.x, min.y, max.z);
+
+	glVertex3d(min.x, min.y, min.z);
+	glVertex3d(max.x, min.y, min.z);
+	glVertex3d(max.x, min.y, max.z);
+
+	glEnd();
+
+	if (alpha < 1.0f)
+	{
+		glDisable(GL_BLEND);
+	}
+}
+
+void draw_AABB_spacetime(const AABB_spacetime& aabb, float r, float g, float b, float alpha = 1.0f)
 {
 	vector_3 min = aabb.min_location;
 	vector_3 max = aabb.max_location;
@@ -236,7 +366,9 @@ void draw_objects(void)
 	draw_AABB(double_slit_boundaries[1], 0.0, 1.0, 0.0, 1.0f);
 	draw_AABB(double_slit_boundaries[2], 1.0, 0.0, 0.0, 1.0f);
 
-
+	for (size_t i = 0; i < apparatus_sub_sections.size(); i++)
+		draw_AABB_spacetime(apparatus_sub_sections[i], 1.0, 0.0, 0.0, 1.0f);
+	
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -390,7 +522,7 @@ void keyboard_func(unsigned char key, int x, int y)
 		{
 			photon p;
 			p.position = light_position;
-			p.velocity = randomPointOnCircle_xz(0.001);
+			p.velocity = randomPointOnCircle_xz(1.0);
 
 			while (1)
 			{
