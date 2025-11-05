@@ -34,6 +34,18 @@ vector<photon> hit_apparatus_bounds;
 
 
 
+vector_3 randomPointOnCircle_xz(double radius)
+{
+	real_type angle = static_cast<real_type>(rand()) / RAND_MAX * 2.0f * pi;
+
+	vector_3 v;
+	v.x = radius * cos(angle);
+	v.y = 0;
+	v.z = radius * sin(angle);
+
+	return v;
+}
+
 bool intersect_AABB_2D_xz(const AABB &aabb, const vector_3& point)
 {
 	if (aabb.min_location.x <= point.x && aabb.max_location.x >= point.x &&
@@ -67,6 +79,9 @@ int main(int argc, char** argv)
 		{
 			const size_t index = j * x_res + i;
 			apparatus_sub_sections[index].directions.resize(num_direction_vectors_per_aabb);
+
+			for (size_t k = 0; k < apparatus_sub_sections[index].directions.size(); k++)
+				apparatus_sub_sections[index].directions[k] = randomPointOnCircle_xz(1.0);
 		}
 	}
 
@@ -82,9 +97,6 @@ int main(int argc, char** argv)
 
 	for (size_t i = 0; i < x_res - 1; i++)
 	{
-		curr_aabb.min_location.z += z_step_size;
-		curr_aabb.max_location.z += z_step_size;
-
 		curr_aabb.min_location.z = apparatus_bounds.min_location.z;
 		curr_aabb.max_location.z = curr_aabb.min_location.z + z_step_size;
 
@@ -99,7 +111,6 @@ int main(int argc, char** argv)
 
 		curr_aabb.min_location.x += x_step_size;
 		curr_aabb.max_location.x += x_step_size;
-
 	}
 
 
@@ -360,14 +371,14 @@ void draw_objects(void)
 
 
 
-	draw_AABB(apparatus_bounds, 1.0, 0.5, 0.0, 1.0f);
+//	draw_AABB(apparatus_bounds, 1.0, 0.5, 0.0, 1.0f);
 	draw_AABB(receiver, 1.0, 0.5, 1.0, 1.0f);
 	draw_AABB(double_slit_boundaries[0], 1.0, 0.0, 0.0, 1.0f);
 	draw_AABB(double_slit_boundaries[1], 0.0, 1.0, 0.0, 1.0f);
 	draw_AABB(double_slit_boundaries[2], 1.0, 0.0, 0.0, 1.0f);
 
 	for (size_t i = 0; i < apparatus_sub_sections.size(); i++)
-		draw_AABB_spacetime(apparatus_sub_sections[i], 1.0, 0.0, 0.0, 1.0f);
+		draw_AABB_spacetime(apparatus_sub_sections[i], 1.0, 0.5, 0.0, 1.0f);
 	
 
 	glEnable(GL_BLEND);
@@ -497,18 +508,6 @@ void display_func(void)
 	glutSwapBuffers();
 }
 
-
-vector_3 randomPointOnCircle_xz(double radius) 
-{
-	real_type angle = static_cast<real_type>(rand()) / RAND_MAX * 2.0f * pi;
-
-	vector_3 v;
-	v.x = radius * cos(angle);
-	v.y = 0;
-	v.z = radius * sin(angle);
-
-	return v;
-}
 
 
 
