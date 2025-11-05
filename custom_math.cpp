@@ -103,12 +103,24 @@ custom_math::vector_3& custom_math::vector_3::operator*=(const vector_3& rhs)
 	return *this;
 }
 
+
+custom_math::vector_3& custom_math::vector_3::operator/=(const vector_3& rhs)
+{
+	x /= rhs.x; y /= rhs.y; z /= rhs.z;
+	return *this;
+}
+
 custom_math::vector_3& custom_math::vector_3::operator*=(const real_type& rhs)
 {
 	x *= rhs; y *= rhs; z *= rhs;
 	return *this;
 }
 
+custom_math::vector_3& custom_math::vector_3::operator/=(const real_type& rhs)
+{
+	x /= rhs; y /= rhs; z /= rhs;
+	return *this;
+}
 custom_math::vector_3 custom_math::vector_3::operator-(void)
 {
 	vector_3 temp;

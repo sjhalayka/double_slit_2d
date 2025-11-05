@@ -49,32 +49,23 @@ using std::mutex;
 #include <thread>
 using std::thread;
 
+
 #include <random>
-std::mt19937 generator(0);
-std::uniform_real_distribution<real_type> dis(0.0, 1.0);
 
 #include <optional>
 #include <utility>
 using namespace std;
 
 const real_type pi = 4.0 * atan(1.0);
-const real_type G = 6.67430e-11;
-const real_type c = 299792458;
-const real_type c2 = c * c;
-const real_type c3 = c * c * c;
-const real_type c4 = c * c * c * c;
 
-const real_type h = 6.62607015e-34;
-const real_type hbar = h / (2.0 * pi);
-const real_type k = 1.380649e-23;
-const real_type planck_length = sqrt(hbar * G / c3);
-
-const double dt = 0.001; // 10000 seconds == 2.77777 hours
+const real_type dt = 0.001;
 vector_3 light_position;
-const size_t x_res = 8;
-const size_t z_res = 8;
-const size_t num_direction_vectors_per_aabb = 100;
+const size_t x_res = 25;
+const size_t z_res = 25;
+const size_t num_direction_vectors_per_aabb = 10;
 
+std::mt19937 generator(0);
+std::uniform_int_distribution<long unsigned int> dis(0, num_direction_vectors_per_aabb - 1);
 
 
 void idle_func(void);
@@ -90,8 +81,8 @@ void render_string(int x, const int y, void* font, const string& text);
 void draw_objects(void);
 
 
-custom_math::vector_3 background_colour(0.0f, 0.0f, 0.0f);
-custom_math::vector_3 control_list_colour(1.0f, 1.0f, 1.0f);
+custom_math::vector_3 background_colour(1.0f, 1.0f, 1.0f);
+custom_math::vector_3 control_list_colour(0, 0, 0);
 
 bool draw_axis = true;
 bool draw_control_list = true;

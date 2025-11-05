@@ -1,5 +1,8 @@
 ﻿#include "main.h"
 
+
+
+
 class AABB
 {
 public:
@@ -11,6 +14,27 @@ class AABB_spacetime : public AABB
 {
 public:
 	vector<vector_3> directions;
+
+	void set_random_dir(const vector_3 &dir)
+	{
+		directions[dis(generator)] = dir;
+	}
+
+	vector_3 get_direction_avg(void)
+	{
+		if (directions.size() == 0)
+		{
+			cout << "WTF" << endl;
+			return vector_3(0, 0, 0);
+		}
+
+		vector_3 total(0, 0, 0);
+
+		for (size_t i = 0; i < directions.size(); i++)
+			total += directions[i];
+
+		return total / static_cast<real_type>(directions.size());
+	}
 };
 
 AABB apparatus_bounds;
@@ -36,7 +60,7 @@ vector<photon> hit_apparatus_bounds;
 
 vector_3 randomPointOnCircle_xz(double radius)
 {
-	real_type angle = static_cast<real_type>(rand()) / RAND_MAX * 2.0f * pi;
+	real_type angle = static_cast<real_type>(rand()) / RAND_MAX * 2.0 * pi;
 
 	vector_3 v;
 	v.x = radius * cos(angle);
@@ -47,6 +71,17 @@ vector_3 randomPointOnCircle_xz(double radius)
 }
 
 bool intersect_AABB_2D_xz(const AABB &aabb, const vector_3& point)
+{
+	if (aabb.min_location.x <= point.x && aabb.max_location.x >= point.x &&
+		aabb.min_location.z <= point.z && aabb.max_location.z >= point.z)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+bool intersect_AABB_spacetime_2D_xz(const AABB& aabb, const vector_3& point)
 {
 	if (aabb.min_location.x <= point.x && aabb.max_location.x >= point.x &&
 		aabb.min_location.z <= point.z && aabb.max_location.z >= point.z)
@@ -81,7 +116,9 @@ int main(int argc, char** argv)
 			apparatus_sub_sections[index].directions.resize(num_direction_vectors_per_aabb);
 
 			for (size_t k = 0; k < apparatus_sub_sections[index].directions.size(); k++)
+			{
 				apparatus_sub_sections[index].directions[k] = randomPointOnCircle_xz(1.0);
+			}
 		}
 	}
 
@@ -89,6 +126,8 @@ int main(int argc, char** argv)
 	const real_type z_step_size = (apparatus_bounds.max_location.z - apparatus_bounds.min_location.z) / (z_res - 1);
 
 	AABB_spacetime curr_aabb;
+
+	curr_aabb.directions.resize(num_direction_vectors_per_aabb);
 
 	curr_aabb.min_location = apparatus_bounds.min_location;
 	curr_aabb.max_location = curr_aabb.min_location;
@@ -112,6 +151,14 @@ int main(int argc, char** argv)
 		curr_aabb.min_location.x += x_step_size;
 		curr_aabb.max_location.x += x_step_size;
 	}
+
+
+
+
+
+
+
+
 
 
 
@@ -378,15 +425,27 @@ void draw_objects(void)
 	draw_AABB(double_slit_boundaries[2], 1.0, 0.0, 0.0, 1.0f);
 
 	for (size_t i = 0; i < apparatus_sub_sections.size(); i++)
-		draw_AABB_spacetime(apparatus_sub_sections[i], 1.0, 0.5, 0.0, 1.0f);
-	
+	{
+		vector_3 avg = apparatus_sub_sections[i].get_direction_avg();
+
+		real_type x = avg.length();
+
+		//cout << avg.x << " " << avg.z  << endl;
+
+		draw_AABB_spacetime(apparatus_sub_sections[i], x, 0, x, 1);
+	}
+
+
+
+
+
+
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glBegin(GL_POINTS);
 	
-
 	glColor4f(1, 1, 1, 1);
 
 	glVertex3d(light_position.x, light_position.y, light_position.z);
@@ -525,7 +584,37 @@ void keyboard_func(unsigned char key, int x, int y)
 
 			while (1)
 			{
-				p.position += p.velocity * dt;
+
+				for (size_t i = 0; i < x_res; i++)
+				{
+					for (size_t j = 0; j < z_res; j++)
+					{
+						const size_t index = j * x_res + i;
+
+						if (intersect_AABB_spacetime_2D_xz(apparatus_sub_sections[index], p.position))
+						{
+							apparatus_sub_sections[index].set_random_dir(p.velocity);
+
+							//if(apparatus_sub_sections[index].get_direction_avg().length() > 0)
+							//	cout << apparatus_sub_sections[index].get_direction_avg().x << " " << apparatus_sub_sections[index].get_direction_avg().y << endl;
+
+							//cout << p.velocity.x << " " << p.velocity.z << endl;
+							p.velocity += apparatus_sub_sections[index].get_direction_avg()*dt;
+							p.velocity.normalize();
+
+
+							i = x_res; j = z_res;
+							break;
+						}
+					}
+				}
+
+
+
+
+
+
+
 
 				if (true == intersect_AABB_2D_xz(double_slit_boundaries[0], p.position) ||
 					true == intersect_AABB_2D_xz(double_slit_boundaries[1], p.position) ||
@@ -544,7 +633,10 @@ void keyboard_func(unsigned char key, int x, int y)
 					hit_apparatus_bounds.push_back(p);
 					break;
 				}
+
+				p.position += p.velocity * dt;
 			}
+
 		}
 
 		break;

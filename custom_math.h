@@ -100,7 +100,9 @@ public:
 	vector_3& operator=(const vector_3& rhs);
 	vector_3& operator+=(const vector_3& rhs);
 	vector_3& operator*=(const vector_3& rhs);
+	vector_3& operator/=(const vector_3& rhs);
 	vector_3& operator*=(const real_type& rhs);
+	vector_3& operator/=(const real_type& rhs);
 	vector_3 operator-(void);
 	real_type length(void) const;
 	vector_3& normalize(void);
