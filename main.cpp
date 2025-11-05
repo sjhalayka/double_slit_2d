@@ -23,10 +23,7 @@ public:
 	vector_3 get_direction_avg(void)
 	{
 		if (directions.size() == 0)
-		{
-			cout << "WTF" << endl;
 			return vector_3(0, 0, 0);
-		}
 
 		vector_3 total(0, 0, 0);
 
@@ -108,26 +105,26 @@ int main(int argc, char** argv)
 
 	apparatus_sub_sections.resize(x_res * z_res);
 
-	for (size_t i = 0; i < x_res; i++)
-	{
-		for (size_t j = 0; j < z_res; j++)
-		{
-			const size_t index = j * x_res + i;
-			apparatus_sub_sections[index].directions.resize(num_direction_vectors_per_aabb);
+	//for (size_t i = 0; i < x_res; i++)
+	//{
+	//	for (size_t j = 0; j < z_res; j++)
+	//	{
+	//		const size_t index = j * x_res + i;
+	//		apparatus_sub_sections[index].directions.resize(num_direction_vectors_per_aabb);
 
-			for (size_t k = 0; k < apparatus_sub_sections[index].directions.size(); k++)
-			{
-				apparatus_sub_sections[index].directions[k] = randomPointOnCircle_xz(1.0);
-			}
-		}
-	}
+	//		for (size_t k = 0; k < apparatus_sub_sections[index].directions.size(); k++)
+	//		{
+	//			apparatus_sub_sections[index].directions[k] = randomPointOnCircle_xz(1.0);
+	//		}
+	//	}
+	//}
 
 	const real_type x_step_size = (apparatus_bounds.max_location.x - apparatus_bounds.min_location.x) / (x_res - 1);
 	const real_type z_step_size = (apparatus_bounds.max_location.z - apparatus_bounds.min_location.z) / (z_res - 1);
 
 	AABB_spacetime curr_aabb;
 
-	curr_aabb.directions.resize(num_direction_vectors_per_aabb);
+
 
 	curr_aabb.min_location = apparatus_bounds.min_location;
 	curr_aabb.max_location = curr_aabb.min_location;
@@ -141,6 +138,11 @@ int main(int argc, char** argv)
 
 		for (size_t j = 0; j < z_res - 1; j++)
 		{ 
+			curr_aabb.directions.resize(num_direction_vectors_per_aabb);
+
+			for (size_t k = 0; k < curr_aabb.directions.size(); k++)
+				curr_aabb.directions[k] = randomPointOnCircle_xz(1.0);
+
 			const size_t index = j * x_res + i;
 			apparatus_sub_sections[index] = curr_aabb;
 
@@ -584,7 +586,6 @@ void keyboard_func(unsigned char key, int x, int y)
 
 			while (1)
 			{
-
 				for (size_t i = 0; i < x_res; i++)
 				{
 					for (size_t j = 0; j < z_res; j++)
@@ -594,14 +595,8 @@ void keyboard_func(unsigned char key, int x, int y)
 						if (intersect_AABB_spacetime_2D_xz(apparatus_sub_sections[index], p.position))
 						{
 							apparatus_sub_sections[index].set_random_dir(p.velocity);
-
-							//if(apparatus_sub_sections[index].get_direction_avg().length() > 0)
-							//	cout << apparatus_sub_sections[index].get_direction_avg().x << " " << apparatus_sub_sections[index].get_direction_avg().y << endl;
-
-							//cout << p.velocity.x << " " << p.velocity.z << endl;
 							p.velocity += apparatus_sub_sections[index].get_direction_avg()*dt;
 							p.velocity.normalize();
-
 
 							i = x_res; j = z_res;
 							break;
