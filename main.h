@@ -73,6 +73,9 @@ const real_type planck_length = sqrt(hbar * G / c3);
 
 const double dt = 0.01; // 10000 seconds == 2.77777 hours
 
+vector_3 light_position;
+
+
 void idle_func(void);
 void init_opengl(const int& width, const int& height);
 void reshape_func(int width, int height);

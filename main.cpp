@@ -49,6 +49,8 @@ int main(int argc, char** argv)
 	double_slit_boundaries[1].max_location = vector_3(0.1, 0.01, 0.1);
 	double_slit_boundaries[2].min_location = vector_3(-1.0, 0.01, -0.1);
 	double_slit_boundaries[2].max_location = vector_3(-0.2, 0.01, 0.1);
+	light_position = vector_3(0, 0.0, -0.9);
+
 
 	cout << setprecision(20) << endl;
 
@@ -240,6 +242,12 @@ void draw_objects(void)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glBegin(GL_POINTS);
+	
+
+	glColor4f(1, 1, 1, 1);
+
+	glVertex3d(light_position.x, light_position.y, light_position.z);
+
 
 	glColor4f(0, 0, 1, 1);
 
@@ -381,7 +389,7 @@ void keyboard_func(unsigned char key, int x, int y)
 		for (size_t i = 0; i < 1000; i++)
 		{
 			photon p;
-			p.position = vector_3(0, 0.0, -0.9);
+			p.position = light_position;
 			p.velocity = randomPointOnCircle_xz(0.001);
 
 			while (1)
@@ -410,6 +418,15 @@ void keyboard_func(unsigned char key, int x, int y)
 
 		break;
 	}
+	case 'x':
+	{
+		hit_boundaries.clear();
+		hit_receiver.clear();
+		hit_apparatus_bounds.clear();
+
+		break;
+	}
+
 	case 'w':
 	{
 		draw_axis = !draw_axis;
