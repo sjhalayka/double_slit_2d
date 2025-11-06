@@ -414,8 +414,6 @@ void draw_objects(void)
 
 		real_type x = avg.length();
 
-		//cout << avg.x << " " << avg.z  << endl;
-
 		draw_AABB_spacetime(apparatus_sub_sections[i], x, x, x, 1);
 	}
 
@@ -425,8 +423,8 @@ void draw_objects(void)
 
 
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glBegin(GL_POINTS);
 	
@@ -448,7 +446,7 @@ void draw_objects(void)
 
 	glEnd();
 
-	glDisable(GL_BLEND);
+	//glDisable(GL_BLEND);
 
 
 
@@ -583,8 +581,6 @@ void keyboard_func(unsigned char key, int x, int y)
 
 							p.velocity += randomPointOnCircle_xz(1.0)*100*apparatus_sub_sections[index].get_direction_avg().length() * dt;
 							p.velocity.normalize();
-
-
 
 							i = x_res; j = z_res;
 							break;
