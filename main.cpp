@@ -17,7 +17,7 @@ public:
 
 	void set_random_dir(const vector_3 &dir)
 	{
-		directions[dis(generator)] = dir;
+		directions[dis_int(generator_int)] = dir;
 	}
 
 	vector_3 get_direction_avg(void)
@@ -57,7 +57,7 @@ vector<photon> hit_apparatus_bounds;
 
 vector_3 randomPointOnCircle_xz(double radius)
 {
-	real_type angle = static_cast<real_type>(rand()) / RAND_MAX * 2.0 * pi;
+	real_type angle = dis_real(generator_real) * 2.0 * pi;
 
 	vector_3 v;
 	v.x = radius * cos(angle);
@@ -102,30 +102,12 @@ int main(int argc, char** argv)
 	double_slit_boundaries[2].min_location = vector_3(-1.0, 0.01, -0.1);
 	double_slit_boundaries[2].max_location = vector_3(-0.2, 0.01, 0.1);
 	light_position = vector_3(0, 0.0, -0.9);
-
 	apparatus_sub_sections.resize(x_res * z_res);
-
-	//for (size_t i = 0; i < x_res; i++)
-	//{
-	//	for (size_t j = 0; j < z_res; j++)
-	//	{
-	//		const size_t index = j * x_res + i;
-	//		apparatus_sub_sections[index].directions.resize(num_direction_vectors_per_aabb);
-
-	//		for (size_t k = 0; k < apparatus_sub_sections[index].directions.size(); k++)
-	//		{
-	//			apparatus_sub_sections[index].directions[k] = randomPointOnCircle_xz(1.0);
-	//		}
-	//	}
-	//}
 
 	const real_type x_step_size = (apparatus_bounds.max_location.x - apparatus_bounds.min_location.x) / (x_res - 1);
 	const real_type z_step_size = (apparatus_bounds.max_location.z - apparatus_bounds.min_location.z) / (z_res - 1);
 
 	AABB_spacetime curr_aabb;
-
-
-
 	curr_aabb.min_location = apparatus_bounds.min_location;
 	curr_aabb.max_location = curr_aabb.min_location;
 	curr_aabb.max_location.x += x_step_size;
@@ -434,7 +416,7 @@ void draw_objects(void)
 
 		//cout << avg.x << " " << avg.z  << endl;
 
-		draw_AABB_spacetime(apparatus_sub_sections[i], x, 0, x, 1);
+		draw_AABB_spacetime(apparatus_sub_sections[i], x, x, x, 1);
 	}
 
 
@@ -595,8 +577,14 @@ void keyboard_func(unsigned char key, int x, int y)
 						if (intersect_AABB_spacetime_2D_xz(apparatus_sub_sections[index], p.position))
 						{
 							apparatus_sub_sections[index].set_random_dir(p.velocity);
-							p.velocity += apparatus_sub_sections[index].get_direction_avg()*dt;
+
+							//p.velocity += apparatus_sub_sections[index].get_direction_avg() * dt;
+							//p.velocity.normalize();
+
+							p.velocity += randomPointOnCircle_xz(1.0)*100*apparatus_sub_sections[index].get_direction_avg().length() * dt;
 							p.velocity.normalize();
+
+
 
 							i = x_res; j = z_res;
 							break;

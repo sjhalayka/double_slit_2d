@@ -60,12 +60,17 @@ const real_type pi = 4.0 * atan(1.0);
 
 const real_type dt = 0.001;
 vector_3 light_position;
-const size_t x_res = 25;
-const size_t z_res = 25;
-const size_t num_direction_vectors_per_aabb = 10;
+const size_t x_res = 100;
+const size_t z_res = 100;
+const size_t num_direction_vectors_per_aabb = 100;
 
-std::mt19937 generator(0);
-std::uniform_int_distribution<long unsigned int> dis(0, num_direction_vectors_per_aabb - 1);
+std::mt19937 generator_int(static_cast<unsigned>(0));
+std::uniform_int_distribution<long unsigned int> dis_int(0, num_direction_vectors_per_aabb - 1);
+
+std::mt19937 generator_real(static_cast<unsigned>(0));
+std::uniform_real_distribution<real_type> dis_real(0, 1);
+
+
 
 
 void idle_func(void);
