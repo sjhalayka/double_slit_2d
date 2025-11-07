@@ -91,6 +91,9 @@ bool intersect_AABB_spacetime_2D_xz(const AABB& aabb, const vector_3& point)
 
 int main(int argc, char** argv)
 {
+	generator_int.seed(static_cast<unsigned>(time(0)));
+	generator_real.seed(static_cast<unsigned>(time(0)));
+
 	apparatus_bounds.min_location = vector_3(-1.0, 0, -1.0);
 	apparatus_bounds.max_location = vector_3(1.0, 0, 1.0);
 	receiver.min_location = vector_3(-1.0, 0, 1.0);
@@ -112,6 +115,7 @@ int main(int argc, char** argv)
 	curr_aabb.max_location = curr_aabb.min_location;
 	curr_aabb.max_location.x += x_step_size;
 	curr_aabb.max_location.z += z_step_size;
+	curr_aabb.directions.resize(num_direction_vectors_per_aabb);
 
 	for (size_t i = 0; i < x_res - 1; i++)
 	{
@@ -119,9 +123,7 @@ int main(int argc, char** argv)
 		curr_aabb.max_location.z = curr_aabb.min_location.z + z_step_size;
 
 		for (size_t j = 0; j < z_res - 1; j++)
-		{ 
-			curr_aabb.directions.resize(num_direction_vectors_per_aabb);
-
+		{
 			for (size_t k = 0; k < curr_aabb.directions.size(); k++)
 				curr_aabb.directions[k] = randomPointOnCircle_xz(1.0);
 
@@ -135,15 +137,6 @@ int main(int argc, char** argv)
 		curr_aabb.min_location.x += x_step_size;
 		curr_aabb.max_location.x += x_step_size;
 	}
-
-
-
-
-
-
-
-
-
 
 
 	cout << setprecision(20) << endl;
@@ -167,12 +160,12 @@ int main(int argc, char** argv)
 
 
 // Add this function to draw an AABB using triangles
-void draw_AABB(const AABB& aabb, float r, float g, float b, float alpha = 1.0f)
+void draw_AABB(const AABB& aabb, real_type r, real_type g, real_type b, real_type alpha = 1.0f)
 {
 	vector_3 min = aabb.min_location;
 	vector_3 max = aabb.max_location;
 
-	glColor4f(r, g, b, alpha);
+	glColor4d(r, g, b, alpha);
 
 	// Enable blending if using transparency
 	if (alpha < 1.0f)
@@ -245,12 +238,12 @@ void draw_AABB(const AABB& aabb, float r, float g, float b, float alpha = 1.0f)
 	}
 }
 
-void draw_AABB_spacetime(const AABB_spacetime& aabb, float r, float g, float b, float alpha = 1.0f)
+void draw_AABB_spacetime(const AABB_spacetime& aabb, real_type r, real_type g, real_type b, real_type alpha = 1.0f)
 {
 	vector_3 min = aabb.min_location;
 	vector_3 max = aabb.max_location;
 
-	glColor4f(r, g, b, alpha);
+	glColor4d(r, g, b, alpha);
 
 	// Enable blending if using transparency
 	if (alpha < 1.0f)
@@ -410,11 +403,8 @@ void draw_objects(void)
 
 	for (size_t i = 0; i < apparatus_sub_sections.size(); i++)
 	{
-		vector_3 avg = apparatus_sub_sections[i].get_direction_avg();
-
-		real_type x = avg.length();
-
-		draw_AABB_spacetime(apparatus_sub_sections[i], x, x, x, 1);
+		real_type avg = apparatus_sub_sections[i].get_direction_avg().length();
+		draw_AABB_spacetime(apparatus_sub_sections[i], avg, avg, avg, 1);
 	}
 
 
@@ -423,15 +413,14 @@ void draw_objects(void)
 
 
 
-	//glEnable(GL_BLEND);
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glBegin(GL_POINTS);
 	
 	glColor4f(1, 1, 1, 1);
 
 	glVertex3d(light_position.x, light_position.y, light_position.z);
-
 
 	glColor4f(0, 0, 1, 1);
 
@@ -446,15 +435,80 @@ void draw_objects(void)
 
 	glEnd();
 
-	//glDisable(GL_BLEND);
+	glDisable(GL_BLEND);
+
+	const size_t num_bins = x_res;
+
+	vector<size_t> bins;
+	bins.resize(num_bins);
+
+	const real_type start = apparatus_bounds.min_location.x;
+	const real_type end = apparatus_bounds.max_location.x;
+
+	const real_type pos_step_size =
+		(end - start)
+		/ (num_bins - 1);
+
+	size_t count = 0;
+	size_t max_count = 0;
+
+	for (size_t i = 0; i < num_bins; i++)
+	{
+		const real_type receiver_distance_geometrized =
+			start + i * pos_step_size;
+
+		for (size_t j = 0; j < hit_receiver.size(); j++)
+		{
+			if (hit_receiver[j].position.x >= receiver_distance_geometrized &&
+				hit_receiver[j].position.x <= receiver_distance_geometrized + pos_step_size)
+			{
+				count++;
+			}
+		}
+
+		if (count > max_count)
+			max_count = count;
+	}
 
 
+
+
+
+	for (size_t i = 0; i < num_bins - 1; i++)
+	{
+		const real_type receiver_distance_geometrized =
+			start + i * pos_step_size;
+
+		size_t count = 0;
+
+		for (size_t j = 0; j < hit_receiver.size(); j++)
+		{
+			if (hit_receiver[j].position.x >= receiver_distance_geometrized &&
+				hit_receiver[j].position.x <= receiver_distance_geometrized + pos_step_size)
+			{
+				count++;
+			}
+		}
+
+		if (1)//it_receiver.size() > 0)
+		{
+			AABB height_aabb;
+
+			height_aabb.min_location = vector_3(receiver_distance_geometrized, 0, 1);
+			height_aabb.max_location = vector_3(receiver_distance_geometrized + pos_step_size, 0.25, 1);
+
+			draw_AABB(
+				height_aabb,
+				count / 5.0,// / static_cast<real_type>(max_count), 
+				count / 5.0,// / static_cast<real_type>(max_count),
+				count / 5.0,// / static_cast<real_type>(max_count),
+				1.0);
+		}
+	}
 
 
 	if (0)//true == draw_axis)
 	{
-		glLineWidth(1.0f);
-
 		glBegin(GL_LINES);
 
 		glColor3f(1, 0, 0);
@@ -558,6 +612,9 @@ void keyboard_func(unsigned char key, int x, int y)
 	{
 	case 'z':
 	{
+		generator_real.seed(static_cast<unsigned>(time(0)));
+		generator_int.seed(static_cast<unsigned>(time(0)));
+
 		for (size_t i = 0; i < 1000; i++)
 		{
 			photon p;
@@ -579,21 +636,17 @@ void keyboard_func(unsigned char key, int x, int y)
 							//p.velocity += apparatus_sub_sections[index].get_direction_avg() * dt;
 							//p.velocity.normalize();
 
-							p.velocity += randomPointOnCircle_xz(1.0)*100*apparatus_sub_sections[index].get_direction_avg().length() * dt;
+							p.velocity += randomPointOnCircle_xz(1.0) * 500 * apparatus_sub_sections[index].get_direction_avg().length() * dt;
 							p.velocity.normalize();
+
+							//p.velocity += randomPointOnCircle_xz(1.0) * 500 * apparatus_sub_sections[index].get_direction_avg() * dt;
+							//p.velocity.normalize();
 
 							i = x_res; j = z_res;
 							break;
 						}
 					}
 				}
-
-
-
-
-
-
-
 
 				if (true == intersect_AABB_2D_xz(double_slit_boundaries[0], p.position) ||
 					true == intersect_AABB_2D_xz(double_slit_boundaries[1], p.position) ||
