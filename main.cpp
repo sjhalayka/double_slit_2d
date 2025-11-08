@@ -447,7 +447,7 @@ void draw_objects(void)
 
 	const real_type pos_step_size =
 		(end - start)
-		/ (num_bins - 1);
+		/ (num_bins);
 
 	size_t count = 0;
 	size_t max_count = 0;
@@ -474,7 +474,7 @@ void draw_objects(void)
 
 
 
-	for (size_t i = 0; i < num_bins - 1; i++)
+	for (size_t i = 0; i < num_bins; i++)
 	{
 		const real_type receiver_distance_geometrized =
 			start + i * pos_step_size;
@@ -490,7 +490,7 @@ void draw_objects(void)
 			}
 		}
 
-		if (1)//it_receiver.size() > 0)
+		if (1)//hit_receiver.size() > 0)
 		{
 			AABB height_aabb;
 
@@ -499,9 +499,9 @@ void draw_objects(void)
 
 			draw_AABB(
 				height_aabb,
-				count / 5.0,// / static_cast<real_type>(max_count), 
-				count / 5.0,// / static_cast<real_type>(max_count),
-				count / 5.0,// / static_cast<real_type>(max_count),
+				count / 100.0,// / static_cast<real_type>(max_count), 
+				count / 100.0,// / static_cast<real_type>(max_count),
+				count / 100.0,// / static_cast<real_type>(max_count),
 				1.0);
 		}
 	}
@@ -636,8 +636,10 @@ void keyboard_func(unsigned char key, int x, int y)
 							//p.velocity += apparatus_sub_sections[index].get_direction_avg() * dt;
 							//p.velocity.normalize();
 
-							p.velocity += randomPointOnCircle_xz(1.0) * 500 * apparatus_sub_sections[index].get_direction_avg().length() * dt;
+							p.velocity += randomPointOnCircle_xz(1.0) / 10.0;
+							p.velocity += apparatus_sub_sections[index].get_direction_avg() / 5.0;
 							p.velocity.normalize();
+
 
 							//p.velocity += randomPointOnCircle_xz(1.0) * 500 * apparatus_sub_sections[index].get_direction_avg() * dt;
 							//p.velocity.normalize();
