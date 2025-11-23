@@ -1,7 +1,8 @@
 ﻿#include "main.h"
 
 
-
+vector_3 slit_A_middle;
+vector_3 slit_B_middle;
 
 class AABB
 {
@@ -17,7 +18,14 @@ public:
 
 	void set_random_dir(const vector_3 &dir)
 	{
-		directions[dis_int(generator_int)] = dir;
+		//directions[dis_int(generator_int)] = dir;
+
+		for (size_t i = 0; i < directions.size(); i++)
+		{
+			directions[i] += dir;
+			directions[i].normalize();
+		}
+
 	}
 
 	vector_3 get_direction_avg(void)
@@ -106,6 +114,9 @@ int main(int argc, char** argv)
 	double_slit_boundaries[2].max_location = vector_3(-0.2, 0.01, 0.1);
 	light_position = vector_3(0, 0.0, -0.9);
 	apparatus_sub_sections.resize(x_res * z_res);
+
+	slit_A_middle = vector_3(0.125, 0, 0);
+	slit_B_middle = vector_3(-0.125, 0, 0);
 
 	const real_type x_step_size = (apparatus_bounds.max_location.x - apparatus_bounds.min_location.x) / (x_res - 1);
 	const real_type z_step_size = (apparatus_bounds.max_location.z - apparatus_bounds.min_location.z) / (z_res - 1);
@@ -499,9 +510,9 @@ void draw_objects(void)
 
 			draw_AABB(
 				height_aabb,
-				count / 100.0,// / static_cast<real_type>(max_count), 
-				count / 100.0,// / static_cast<real_type>(max_count),
-				count / 100.0,// / static_cast<real_type>(max_count),
+				count / 10.0,// / static_cast<real_type>(max_count), 
+				count / 10.0,// / static_cast<real_type>(max_count),
+				count / 10.0,// / static_cast<real_type>(max_count),
 				1.0);
 		}
 	}
@@ -619,7 +630,13 @@ void keyboard_func(unsigned char key, int x, int y)
 		{
 			photon p;
 			p.position = light_position;
-			p.velocity = randomPointOnCircle_xz(1.0);
+
+			if (dis_real(generator_real) >= 0.5)
+				p.velocity = slit_A_middle - light_position;
+			else
+				p.velocity = slit_B_middle - light_position;
+
+			p.velocity.normalize();
 
 			while (1)
 			{
@@ -637,7 +654,7 @@ void keyboard_func(unsigned char key, int x, int y)
 							//p.velocity.normalize();
 
 							p.velocity += randomPointOnCircle_xz(1.0) / 10.0;
-							p.velocity += apparatus_sub_sections[index].get_direction_avg() / 5.0;
+							p.velocity += apparatus_sub_sections[index].get_direction_avg();// / 5.0;
 							p.velocity.normalize();
 
 

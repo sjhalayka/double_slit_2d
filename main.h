@@ -60,8 +60,8 @@ const real_type pi = 4.0 * atan(1.0);
 
 const real_type dt = 0.001;
 vector_3 light_position;
-const size_t x_res = 200;
-const size_t z_res = 200;
+const size_t x_res = 50;
+const size_t z_res = 50;
 const size_t num_direction_vectors_per_aabb = 100;
 
 std::mt19937 generator_int(static_cast<unsigned>(0));
